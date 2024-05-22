@@ -54,10 +54,10 @@ app.post("/api/users", async (req, res) => {
 
 app.post("/api/users/:_id/exercises", async (req, res) => {
   const id = req.params._id;
-  const { description, duration, date } = req.body;
+  const { description, duration, date } = req.body
 
   try {
-    const user = await User.findById(id);
+    const user = await User.findById(id)
     if (!user) {
       res.send("Could not find user")
     } else {
@@ -67,7 +67,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
         duration,
         date: date ? new Date(date) : new Date()
       })
-      const exercise = await exerciseObj.save();
+      const exercise = await exerciseObj.save()
       res.json({
         _id: user._id,
         username: user.username,
@@ -78,9 +78,9 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     }
   }catch(err){
     console.log(err);
-    res.send("There was an error saving the exercise");
+    res.send("There was an error saving the exercise")
   }
-});
+})
 
 
 app.get("/api/users/:_id/logs", async (req, res) => {
