@@ -1,11 +1,11 @@
-const express = require('express')
-const app = express()
-const cors = require('cors')
-require('dotenv').config()
+const express = require('express');
+const app = express();
+const cors = require('cors');
+require('dotenv').config();
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI);
 
 const UserSchema = new Schema({
   username: String,
@@ -37,14 +37,14 @@ app.get("/api/users", async (req, res) => {
 })
 
 app.post("/api/users", async (req, res) => {
-  console.log(req.body);
+  //console.log("req.body: " + req.body);
   const userObj = new User({
     username: req.body.username,
   });
 
   try{
     const user = await userObj.save();
-    //console.log(user); /* 8:57 */
+    //console.log("user: " + user); /* 8:57 */
     res.json(user);
   }catch(err){
     console.log(err);
@@ -53,6 +53,24 @@ app.post("/api/users", async (req, res) => {
 })
 
 app.post("/api/users/:_id/exercises", async (req, res) => {
+  const checkDate = (date) => {
+    if (!date) {
+      return (new Date(Date.now())).toDateString();
+    } else {
+      let dateString;
+      if (typeof date === 'string') {
+        dateString = date;
+      } else if (date instanceof Date) {
+        dateString = date.toISOString().split('T')[0];
+      }
+      const parts = dateString.split('-');
+      const year = parseInt(parts[0]);
+      const month = parseInt(parts[1]) - 1;
+      const day = parseInt(parts[2]);
+      const utcDate = new Date(Date.UTC(year, month, day));
+      return new Date(utcDate.getTime() + utcDate.getTimezoneOffset() * 60000).toDateString();
+    }
+  }
   const id = req.params._id;
   const { description, duration, date } = req.body
 
@@ -65,15 +83,16 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
         user_id: user._id,
         description,
         duration,
-        date: date ? new Date(date) : new Date()
+        date: checkDate(date)
       })
       const exercise = await exerciseObj.save()
+
       res.json({
-        _id: user._id,
         username: user.username,
         description: exercise.description,
-        duration: exercise.duration,
-        date: new Date(exercise.date).toDateString()
+        duration: Number(exercise.duration),
+        date: checkDate(exercise.date),
+        _id: user._id
       })
     }
   }catch(err){
